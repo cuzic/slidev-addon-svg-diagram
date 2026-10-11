@@ -1,0 +1,25 @@
+name: test
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          # node:module's stripTypeScriptTypes (the component test) and svg-diagram both need 22.18 or later
+          node-version: 22
+          cache: pnpm
+      # figures are measured with the machine's fonts; a Japanese one keeps the test figures close to what people draw
+      - name: Japanese fonts
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+      - run: pnpm install --frozen-lockfile
+      # unit tests, and a run against a real Slidev dev server (no browser is used or needed)
+      - run: pnpm test
