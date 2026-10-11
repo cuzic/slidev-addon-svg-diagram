@@ -27,7 +27,7 @@ addons:
 A `.ts` source is the same module `svg-diagram build` takes (`export default function define() { return diagram(...) }`).
 Its path is relative to the Markdown file the tag is in. Settings come from `.svg-diagram.json` as for the CLI.
 
-- **Dev:** editing the source (or a file it imports) regenerates the figure and reloads the deck. A figure that fails
+- **Dev:** editing the source (or any local file it imports) regenerates the figure and reloads the deck. A figure that fails
   svg-diagram's verification is drawn anyway, with the problems printed in the terminal.
 - **Build / export:** a figure that fails verification stops the build, as `svg-diagram build` does.
 - Tags inside fenced code blocks are left alone.
@@ -37,7 +37,7 @@ Its path is relative to the Markdown file the tag is in. Settings come from `.sv
 
 ```bash
 pnpm install
-pnpm test     # the Markdown rewriting
+pnpm test     # unit tests, and one run against a real Slidev dev server (~15 s)
 pnpm dev      # example/slides.md
 ```
 
@@ -47,5 +47,4 @@ pnpm dev      # example/slides.md
   It also fails for a plain deck without this addon, so it is an upstream issue. `pnpm dev` works.
   The build-time behaviour of this addon (failing on a bad figure) is therefore untested.
 - `pnpm-workspace.yaml` pins `markdown-it` to 14.x; Slidev 53 pulls `@comark/markdown-it`, which breaks with 15.x.
-- In dev, only the source file itself is re-read after an edit; files it imports stay cached until the server restarts.
-- Reloading the deck after an edit is a full reload, and was checked by requesting the slide module, not in a browser.
+- Reloading the deck after an edit is a full reload. The tests check that the slide module is regenerated and that the server asks the page to reload; they do not run a browser.
