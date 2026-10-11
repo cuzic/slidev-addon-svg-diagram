@@ -3,7 +3,7 @@
 [Slidev](https://sli.dev) addon for embedding diagrams made with
 [svg-diagram](https://github.com/cuzic/svg-diagram).
 
-> Status: early. Needs `svg-diagram` with `svg-diagram/render` (cuzic/svg-diagram#15–#17, merged), which is not on npm yet: until it is, the repo's `svg-diagram` dependency is a local link.
+> Status: early. Needs `svg-diagram` 0.5.0 or later (it provides `svg-diagram/render`).
 
 ## Usage
 

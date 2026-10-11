@@ -39,11 +39,11 @@
     "@vue/compiler-sfc": "^3.5.43",
     "@vue/server-renderer": "^3.5.43",
     "magic-string": "^1.4.3",
-    "svg-diagram": "link:../svg-diagram-main",
+    "svg-diagram": "^0.5.0",
     "vite": "*",
     "vue": "^3.5.43"
   },
   "peerDependencies": {
-    "svg-diagram": "*"
+    "svg-diagram": ">=0.5.0"
   }
 }
