@@ -30,8 +30,8 @@ importers:
         specifier: ^1.4.3
         version: 1.4.3
       svg-diagram:
-        specifier: link:../svg-diagram-font-metrics
-        version: link:../svg-diagram-font-metrics
+        specifier: link:../svg-diagram-main
+        version: link:../svg-diagram-main
       vite:
         specifier: '*'
         version: 8.3.4(@types/node@22.20.5)(jiti@2.7.0)(yaml@2.9.1)

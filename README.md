@@ -3,7 +3,7 @@
 [Slidev](https://sli.dev) addon for embedding diagrams made with
 [svg-diagram](https://github.com/cuzic/svg-diagram).
 
-> Status: early. Needs `svg-diagram` with `svg-diagram/render` (cuzic/svg-diagram#15, #16), not yet on npm.
+> Status: early. Needs `svg-diagram` with `svg-diagram/render` (cuzic/svg-diagram#15–#17, merged), which is not on npm yet: until it is, the repo's `svg-diagram` dependency is a local link.
 
 ## Usage
 
@@ -31,7 +31,8 @@ Its path is relative to the Markdown file the tag is in. Settings come from `.sv
   svg-diagram's verification is drawn anyway, with the problems printed in the terminal.
 - **Build / export:** a figure that fails verification stops the build, as `svg-diagram build` does.
 - Tags inside fenced code blocks are left alone.
-- Text is measured from font files (svg-diagram's default), so no browser is needed to render a figure.
+- No browser is needed to render a figure: text is measured from font files (svg-diagram's default) and the figure's checks run on its geometry. The tests pass with `playwright-chromium` and `@resvg/resvg-js` made unimportable.
+- The fonts it measures with are the ones fontconfig finds for svg-diagram's font stack on the machine that builds the deck; name them in `.svg-diagram.json` (`"fonts"`) to get the same figure on every machine.
 
 ## Development
 
