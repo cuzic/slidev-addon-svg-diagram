@@ -11,6 +11,13 @@
 pnpm add slidev-addon-svg-diagram svg-diagram
 ```
 
+Slidev 53 itself needs one setting, with or without this addon (its Markdown stack pulls `markdown-it` 15, which it cannot load): pin 14 in `pnpm-workspace.yaml`.
+
+```yaml
+overrides:
+  markdown-it: ^14.1.0
+```
+
 ```md
 ---
 addons:
@@ -47,5 +54,5 @@ pnpm dev      # example/slides.md
 - `pnpm build` currently fails with Slidev 53 + vite 8 (`lightningcss minify: Invalid token in pseudo element`).
   It also fails for a plain deck without this addon, so it is an upstream issue. `pnpm dev` works.
   The build-time behaviour of this addon (failing on a bad figure) is therefore untested.
-- `pnpm-workspace.yaml` pins `markdown-it` to 14.x; Slidev 53 pulls `@comark/markdown-it`, which breaks with 15.x.
+- Slidev 53 needs `markdown-it` pinned to 14.x (see Usage): it pulls `@comark/markdown-it`, which breaks with 15.x. Checked on a plain Slidev 53 deck, without this addon.
 - Reloading the deck after an edit is a full reload. The tests check that the slide module is regenerated and that the server asks the page to reload; they do not run a browser.

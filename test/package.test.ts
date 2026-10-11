@@ -81,3 +81,24 @@ test('the scripts exist and `test` runs every test file', () => {
   assert.match(pkg.scripts.test, /test\/\*\.test\.ts/);
   for (const s of ['dev', 'build', 'export']) assert.ok(pkg.scripts[s], s);
 });
+
+test('it can be published: a version, a public access setting, where to find the code and report a problem, Node for what it uses', () => {
+  assert.match(pkg.version, /^\d+\.\d+\.\d+$/);
+  assert.equal(pkg.private, undefined);
+  assert.equal(pkg.publishConfig.access, 'public');
+  assert.match(pkg.homepage, /cuzic\/slidev-addon-svg-diagram/);
+  assert.match(pkg.bugs.url, /cuzic\/slidev-addon-svg-diagram\/issues/);
+  assert.match(pkg.repository.url, /cuzic\/slidev-addon-svg-diagram/);
+  assert.match(pkg.engines.node, /^>=22\.\d+$/);
+  assert.ok(pkg.description.length > 20);
+});
+
+test('what is packed is small and is only what the addon runs: the components, the setup, the lib, the Vite config, the README and the licence', () => {
+  const published = (f: string) => pkg.files.some((p: string) => f === p || f.startsWith(`${p}/`));
+  for (const f of [...walk('components'), ...walk('setup'), ...walk('lib'), 'vite.config.ts', 'README.md', 'LICENSE']) assert.ok(published(f), f);
+  for (const f of [...walk('example'), ...walk('test'), 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.github/workflows/test.yml']) assert.ok(!published(f), `${f} must not be packed`);
+});
+
+test('the README tells a Slidev 53 user about the markdown-it pin it needs', () => {
+  assert.match(read('README.md'), /overrides:\s*\n\s*markdown-it: \^14/);
+});
