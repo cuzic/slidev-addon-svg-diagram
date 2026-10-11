@@ -14,3 +14,9 @@ Embed svg-diagram diagrams in Slidev.
 # Embedding a pre-built SVG
 
 <SvgDiagram src="/diagrams/hello.svg" alt="Source to SVG" width="60%" />
+
+---
+
+# Rendering a diagram source
+
+<SvgDiagram src="./diagrams/flow.ts" alt="ソースからスライドへ" width="80%" />

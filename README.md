@@ -3,12 +3,12 @@
 [Slidev](https://sli.dev) addon for embedding diagrams made with
 [svg-diagram](https://github.com/cuzic/svg-diagram).
 
-> Status: scaffold. Only embedding a pre-built SVG is supported so far.
+> Status: early. Needs `svg-diagram` with `svg-diagram/render` (cuzic/svg-diagram#15, #16), not yet on npm.
 
 ## Usage
 
 ```bash
-pnpm add slidev-addon-svg-diagram
+pnpm add slidev-addon-svg-diagram svg-diagram
 ```
 
 ```md
@@ -17,24 +17,35 @@ addons:
   - svg-diagram
 ---
 
+<!-- a diagram source: rendered when Slidev builds the slide -->
+<SvgDiagram src="./diagrams/flow.ts" alt="Flow" width="80%" />
+
+<!-- or an SVG you built yourself -->
 <SvgDiagram src="/diagrams/flow.svg" alt="Flow" width="80%" />
 ```
+
+A `.ts` source is the same module `svg-diagram build` takes (`export default function define() { return diagram(...) }`).
+Its path is relative to the Markdown file the tag is in. Settings come from `.svg-diagram.json` as for the CLI.
+
+- **Dev:** editing the source (or a file it imports) regenerates the figure and reloads the deck. A figure that fails
+  svg-diagram's verification is drawn anyway, with the problems printed in the terminal.
+- **Build / export:** a figure that fails verification stops the build, as `svg-diagram build` does.
+- Tags inside fenced code blocks are left alone.
+- Text is measured from font files (svg-diagram's default), so no browser is needed to render a figure.
 
 ## Development
 
 ```bash
 pnpm install
+pnpm test     # the Markdown rewriting
 pnpm dev      # example/slides.md
-pnpm build
 ```
-
-## Roadmap
-
-- Render svg-diagram sources at build time (code block / `<SvgDiagram src="x.ts">`)
-- Inline SVG output so slide theme fonts and colors apply
 
 ## Known issues
 
 - `pnpm build` currently fails with Slidev 53 + vite 8 (`lightningcss minify: Invalid token in pseudo element`).
   It also fails for a plain deck without this addon, so it is an upstream issue. `pnpm dev` works.
+  The build-time behaviour of this addon (failing on a bad figure) is therefore untested.
 - `pnpm-workspace.yaml` pins `markdown-it` to 14.x; Slidev 53 pulls `@comark/markdown-it`, which breaks with 15.x.
+- In dev, only the source file itself is re-read after an edit; files it imports stay cached until the server restarts.
+- Reloading the deck after an edit is a full reload, and was checked by requesting the slide module, not in a browser.
