@@ -1,6 +1,6 @@
 {
   "name": "slidev-addon-svg-diagram",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Slidev addon to embed svg-diagram diagrams (flows, swimlanes, sequences, wireframes) in slides.",
   "type": "module",
   "license": "MIT",
@@ -11,12 +11,20 @@
     "diagram",
     "svg-diagram"
   ],
-  "engines": {
-    "slidev": ">=53.0.0"
+  "homepage": "https://github.com/cuzic/slidev-addon-svg-diagram#readme",
+  "bugs": {
+    "url": "https://github.com/cuzic/slidev-addon-svg-diagram/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cuzic/slidev-addon-svg-diagram.git"
+  },
+  "engines": {
+    "node": ">=22.18",
+    "slidev": ">=53.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "components",
@@ -32,6 +40,9 @@
     "export": "slidev export example/slides.md",
     "test": "node --test \"test/*.test.ts\""
   },
+  "peerDependencies": {
+    "svg-diagram": ">=0.5.0"
+  },
   "devDependencies": {
     "@slidev/cli": "^53.0.0",
     "@slidev/theme-default": "latest",
@@ -42,8 +53,5 @@
     "svg-diagram": "^0.5.0",
     "vite": "*",
     "vue": "^3.5.43"
-  },
-  "peerDependencies": {
-    "svg-diagram": ">=0.5.0"
   }
 }
