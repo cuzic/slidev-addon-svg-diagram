@@ -1,0 +1,35 @@
+{
+  "name": "slidev-addon-svg-diagram",
+  "version": "0.0.1",
+  "description": "Slidev addon to embed svg-diagram diagrams (flows, swimlanes, sequences, wireframes) in slides.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "slidev-addon",
+    "slidev",
+    "svg",
+    "diagram",
+    "svg-diagram"
+  ],
+  "engines": {
+    "slidev": ">=53.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cuzic/slidev-addon-svg-diagram.git"
+  },
+  "files": [
+    "components",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "slidev example/slides.md",
+    "build": "slidev build example/slides.md",
+    "export": "slidev export example/slides.md"
+  },
+  "devDependencies": {
+    "@slidev/cli": "^53.0.0",
+    "@slidev/theme-default": "latest"
+  }
+}
