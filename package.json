@@ -20,16 +20,30 @@
   },
   "files": [
     "components",
+    "setup",
+    "lib",
+    "vite.config.ts",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "dev": "slidev example/slides.md",
     "build": "slidev build example/slides.md",
-    "export": "slidev export example/slides.md"
+    "export": "slidev export example/slides.md",
+    "test": "node --test \"test/*.test.ts\""
   },
   "devDependencies": {
     "@slidev/cli": "^53.0.0",
-    "@slidev/theme-default": "latest"
+    "@slidev/theme-default": "latest",
+    "@slidev/types": "^53.0.0",
+    "@vue/compiler-sfc": "^3.5.43",
+    "@vue/server-renderer": "^3.5.43",
+    "magic-string": "^1.4.3",
+    "svg-diagram": "^0.5.0",
+    "vite": "*",
+    "vue": "^3.5.43"
+  },
+  "peerDependencies": {
+    "svg-diagram": ">=0.5.0"
   }
 }
