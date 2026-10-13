@@ -18,3 +18,32 @@ export function findUp(name: string, from: string): string | undefined {
     dir = up;
   }
 }
+
+export interface ProjectFiles {
+  config?: string;
+  icons?: string;
+  /** Every folder a new file of either name would change the answer in: from `from` up to the folder the nearest one was found in
+   *  (or, when there is none, up to the folder with a package.json, or `from` alone). */
+  dirs: string[];
+}
+
+export function projectFiles(from: string): ProjectFiles {
+  const config = findUp(CONFIG_FILE, from), icons = findUp(ICONS_FILE, from);
+  const top = [config, icons].filter((f): f is string => !!f).map(f => path.dirname(f)).sort((a, b) => a.length - b.length)[0]
+    ?? (() => { const pkg = findUp('package.json', from); return pkg ? path.dirname(pkg) : path.resolve(from); })();
+  const dirs: string[] = [];
+  for (let dir = path.resolve(from); ; dir = path.dirname(dir)) {
+    dirs.push(dir);
+    if (dir === top || dir === path.dirname(dir) || !dir.startsWith(top)) break;
+  }
+  return {config, icons, dirs};
+}
+
+/** Runs `fn` after every earlier call has finished: svg-diagram's installed icons are one value for the whole process, and a
+ *  render reads it after its first await, so two renders must not overlap. */
+let tail: Promise<unknown> = Promise.resolve();
+export function serial<T>(fn: () => Promise<T>): Promise<T> {
+  const run = tail.then(fn, fn);
+  tail = run.catch(() => {});
+  return run;
+}

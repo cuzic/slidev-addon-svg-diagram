@@ -82,3 +82,16 @@ test('the middleware always passes the request on, exactly once', () => {
   recordDeps('/v6/slides.md', ['/v6/x.ts']);
   assert.equal(s.request(), 1);
 });
+
+test('a settings or icons file that is created or deleted in a folder a figure looks in reloads the deck; elsewhere or another name does not', () => {
+  const s = fakeServer();
+  recordDeps('/v9/slides.md', ['/v9/figs/a.ts'], ['/v9/figs', '/v9']);
+  s.request();
+  assert.ok(s.watcher.added.includes('/v9') && s.watcher.added.includes('/v9/figs'));
+  s.watcher.emit('add', '/v9/svg-diagram.icons.json');
+  s.watcher.emit('unlink', '/v9/figs/.svg-diagram.json');
+  assert.equal(s.calls.invalidateAll, 2);
+  s.watcher.emit('add', '/v9/other.json');
+  s.watcher.emit('add', '/elsewhere/svg-diagram.icons.json');
+  assert.equal(s.calls.invalidateAll, 2);
+});
