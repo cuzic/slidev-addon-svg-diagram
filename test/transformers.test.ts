@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import MagicString from 'magic-string';
+import * as svgDiagram from 'svg-diagram';
 import setup from '../setup/transformers.ts';
 import {allDeps, allWatchDirs} from '../lib/watch.ts';
 
@@ -168,10 +169,12 @@ test('the embedded SVG is the same one svg-diagram/render gives, as a base64 dat
 });
 
 // ---- the project's icons and settings ------------------------------------------------------------------------------------
+// installable icons arrived after svg-diagram 0.5.0: these tests wait for a release that has them
+const hasIcons = typeof svgDiagram.icon?.use === 'function';
 const ICONS = (d: string) => JSON.stringify({version: 1, icons: {lock2: {vb: [0, 0, 24], d, from: 'mdi:lock', license: 'Apache-2.0'}}});
 const ICON_FIG = `import {diagram, box} from 'svg-diagram';\nexport default function define() { return diagram({theme: 'blue'}).add(box({icon: 'lock2', title: 'x'})); }\n`;
 
-test('an icon the project installed is drawn, found from the source\'s directory and not the working directory', async () => {
+test('an icon the project installed is drawn, found from the source\'s directory and not the working directory', {skip: !hasIcons}, async () => {
   const dir = tmp();
   fs.mkdirSync(path.join(dir, 'figs'));
   fs.writeFileSync(path.join(dir, 'svg-diagram.icons.json'), ICONS('M1 1h8v8H1z'));
@@ -181,7 +184,7 @@ test('an icon the project installed is drawn, found from the source\'s directory
   fs.rmSync(dir, {recursive: true});
 });
 
-test('editing the icons file or the settings file is watched, and the next render shows the new icon', async () => {
+test('editing the icons file or the settings file is watched, and the next render shows the new icon', {skip: !hasIcons}, async () => {
   const dir = tmp();
   const icons = path.join(dir, 'svg-diagram.icons.json'), config = path.join(dir, '.svg-diagram.json');
   fs.writeFileSync(icons, ICONS('M1 1h8v8H1z'));
@@ -205,7 +208,7 @@ test('a project with no icons file renders icon-free figures as before', async (
   fs.rmSync(dir, {recursive: true});
 });
 
-test('slides transformed at the same time each get their own folder\'s icons', async () => {
+test('slides transformed at the same time each get their own folder\'s icons', {skip: !hasIcons}, async () => {
   const dir = tmp();
   for (const [name, d] of [['one', 'M1 1h8v8H1z'], ['two', 'M3 3h18v18H3z']]) {
     fs.mkdirSync(path.join(dir, name));
@@ -226,7 +229,7 @@ test('slides transformed at the same time each get their own folder\'s icons', a
   fs.rmSync(dir, {recursive: true});
 });
 
-test('a broken icons file is an error that names the file', async () => {
+test('a broken icons file is an error that names the file', {skip: !hasIcons}, async () => {
   const dir = tmp();
   fs.writeFileSync(path.join(dir, 'svg-diagram.icons.json'), '{oops');
   fs.writeFileSync(path.join(dir, 'a.ts'), GOOD('x'));
@@ -234,7 +237,7 @@ test('a broken icons file is an error that names the file', async () => {
   fs.rmSync(dir, {recursive: true});
 });
 
-test('a figure that fails to render is still watched, with the folders a new settings or icons file would matter in', async () => {
+test('a figure that fails to render is still watched, with the folders a new settings or icons file would matter in', {skip: !hasIcons}, async () => {
   const dir = tmp();
   fs.mkdirSync(path.join(dir, 'figs'));
   fs.writeFileSync(path.join(dir, 'package.json'), '{}');
