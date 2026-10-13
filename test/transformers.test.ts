@@ -6,8 +6,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import MagicString from 'magic-string';
+import * as svgDiagram from 'svg-diagram';
 import setup from '../setup/transformers.ts';
-import {allDeps} from '../lib/watch.ts';
+import {allDeps, allWatchDirs} from '../lib/watch.ts';
 
 type Mode = 'dev' | 'build' | 'export';
 const pre = (setup({} as never) as unknown as {pre: ((ctx: unknown) => Promise<void>)[]}).pre[0];
@@ -165,4 +166,91 @@ test('the embedded SVG is the same one svg-diagram/render gives, as a base64 dat
   assert.equal(embedded(out)[0], direct.svg);
   assert.ok(!out.includes('\n'), 'the tag stays on one line');
   fs.rmSync(dir, {recursive: true});
+});
+
+// ---- the project's icons and settings ------------------------------------------------------------------------------------
+// installable icons arrived after svg-diagram 0.5.0: these tests wait for a release that has them
+const hasIcons = typeof svgDiagram.icon?.use === 'function';
+const ICONS = (d: string) => JSON.stringify({version: 1, icons: {lock2: {vb: [0, 0, 24], d, from: 'mdi:lock', license: 'Apache-2.0'}}});
+const ICON_FIG = `import {diagram, box} from 'svg-diagram';\nexport default function define() { return diagram({theme: 'blue'}).add(box({icon: 'lock2', title: 'x'})); }\n`;
+
+test('an icon the project installed is drawn, found from the source\'s directory and not the working directory', {skip: !hasIcons}, async () => {
+  const dir = tmp();
+  fs.mkdirSync(path.join(dir, 'figs'));
+  fs.writeFileSync(path.join(dir, 'svg-diagram.icons.json'), ICONS('M1 1h8v8H1z'));
+  fs.writeFileSync(path.join(dir, 'figs', 'a.ts'), ICON_FIG);
+  const out = await transform('<SvgDiagram src="./figs/a.ts" />', path.join(dir, 'slides.md'));
+  assert.match(embedded(out)[0], /data-icon="lock2"/);
+  fs.rmSync(dir, {recursive: true});
+});
+
+test('editing the icons file or the settings file is watched, and the next render shows the new icon', {skip: !hasIcons}, async () => {
+  const dir = tmp();
+  const icons = path.join(dir, 'svg-diagram.icons.json'), config = path.join(dir, '.svg-diagram.json');
+  fs.writeFileSync(icons, ICONS('M1 1h8v8H1z'));
+  fs.writeFileSync(config, '{}');
+  fs.writeFileSync(path.join(dir, 'a.ts'), ICON_FIG);
+  const md = path.join(dir, 'slides.md');
+  const first = embedded(await transform('<SvgDiagram src="./a.ts" />', md))[0];
+  assert.ok(allDeps().has(icons) && allDeps().has(config));
+  fs.writeFileSync(icons, ICONS('M2 2h20v20H2z'));
+  const second = embedded(await transform('<SvgDiagram src="./a.ts" />', md))[0];
+  assert.notEqual(second, first);
+  assert.match(second, /M2 2h20v20H2z/);
+  fs.rmSync(dir, {recursive: true});
+});
+
+test('a project with no icons file renders icon-free figures as before', async () => {
+  const dir = tmp();
+  fs.writeFileSync(path.join(dir, 'a.ts'), GOOD('plain'));
+  const out = await transform('<SvgDiagram src="./a.ts" />', path.join(dir, 'slides.md'));
+  assert.match(embedded(out)[0], /plain/);
+  fs.rmSync(dir, {recursive: true});
+});
+
+test('slides transformed at the same time each get their own folder\'s icons', {skip: !hasIcons}, async () => {
+  const dir = tmp();
+  for (const [name, d] of [['one', 'M1 1h8v8H1z'], ['two', 'M3 3h18v18H3z']]) {
+    fs.mkdirSync(path.join(dir, name));
+    fs.writeFileSync(path.join(dir, name, 'svg-diagram.icons.json'), ICONS(d));
+    fs.writeFileSync(path.join(dir, name, 'a.ts'), ICON_FIG);
+  }
+  fs.mkdirSync(path.join(dir, 'none'));
+  fs.writeFileSync(path.join(dir, 'none', 'a.ts'), GOOD('no icons here'));
+  const md = path.join(dir, 'slides.md');
+  const [one, two, none] = await Promise.all([
+    transform('<SvgDiagram src="./one/a.ts" />', md, 'build', 0),
+    transform('<SvgDiagram src="./two/a.ts" />', md, 'build', 1),
+    transform('<SvgDiagram src="./none/a.ts" />', md, 'build', 2),
+  ]);
+  assert.match(embedded(one)[0], /M1 1h8v8H1z/);
+  assert.match(embedded(two)[0], /M3 3h18v18H3z/);
+  assert.match(embedded(none)[0], /no icons here/);
+  fs.rmSync(dir, {recursive: true});
+});
+
+test('a broken icons file is an error that names the file', {skip: !hasIcons}, async () => {
+  const dir = tmp();
+  fs.writeFileSync(path.join(dir, 'svg-diagram.icons.json'), '{oops');
+  fs.writeFileSync(path.join(dir, 'a.ts'), GOOD('x'));
+  await assert.rejects(transform('<SvgDiagram src="./a.ts" />', path.join(dir, 'slides.md')), (e: Error) => e.message.includes(path.join(dir, 'svg-diagram.icons.json')));
+  fs.rmSync(dir, {recursive: true});
+});
+
+test('a figure that fails to render is still watched, with the folders a new settings or icons file would matter in', {skip: !hasIcons}, async () => {
+  const dir = tmp();
+  fs.mkdirSync(path.join(dir, 'figs'));
+  fs.writeFileSync(path.join(dir, 'package.json'), '{}');
+  fs.writeFileSync(path.join(dir, 'figs', 'a.ts'), ICON_FIG); // no icons installed: throws
+  await assert.rejects(transform('<SvgDiagram src="./figs/a.ts" />', path.join(dir, 'slides.md'), 'dev', 7));
+  assert.ok(allDeps().has(path.join(dir, 'figs', 'a.ts')));
+  const dirs = allWatchDirs();
+  assert.ok(dirs.has(path.join(dir, 'figs')) && dirs.has(dir));
+  fs.rmSync(dir, {recursive: true});
+});
+
+test('the setup does not need svg-diagram to export `icon` (0.5.0 does not)', () => {
+  const src = fs.readFileSync(path.join(import.meta.dirname, '..', 'setup', 'transformers.ts'), 'utf8');
+  assert.doesNotMatch(src, /import\s*\{[^}]*\bicon\b[^}]*\}\s*from\s*'svg-diagram'/);
+  assert.match(src, /icon\?\.use/);
 });

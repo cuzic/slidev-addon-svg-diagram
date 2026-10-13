@@ -33,6 +33,7 @@ addons:
 
 A `.ts` source is the same module `svg-diagram build` takes (`export default function define() { return diagram(...) }`).
 Its path is relative to the Markdown file the tag is in. Settings come from `.svg-diagram.json` as for the CLI.
+Icons come from the `svg-diagram.icons.json` that `svg-diagram icons add` wrote; both files are looked for from the source's folder upwards, and creating, editing or deleting either one redraws the figure in `slidev` dev. (Icons need a svg-diagram release that has installable icons; with 0.5.0 the figures work as before and there are no icons.)
 
 - **Dev:** editing the source (or any local file it imports) regenerates the figure and reloads the deck. A figure that fails
   svg-diagram's verification is drawn anyway, with the problems printed in the terminal.
