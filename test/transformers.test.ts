@@ -166,3 +166,41 @@ test('the embedded SVG is the same one svg-diagram/render gives, as a base64 dat
   assert.ok(!out.includes('\n'), 'the tag stays on one line');
   fs.rmSync(dir, {recursive: true});
 });
+
+// ---- the project's icons and settings ------------------------------------------------------------------------------------
+const ICONS = (d: string) => JSON.stringify({version: 1, icons: {lock2: {vb: [0, 0, 24], d, from: 'mdi:lock', license: 'Apache-2.0'}}});
+const ICON_FIG = `import {diagram, box} from 'svg-diagram';\nexport default function define() { return diagram({theme: 'blue'}).add(box({icon: 'lock2', title: 'x'})); }\n`;
+
+test('an icon the project installed is drawn, found from the source\'s directory and not the working directory', async () => {
+  const dir = tmp();
+  fs.mkdirSync(path.join(dir, 'figs'));
+  fs.writeFileSync(path.join(dir, 'svg-diagram.icons.json'), ICONS('M1 1h8v8H1z'));
+  fs.writeFileSync(path.join(dir, 'figs', 'a.ts'), ICON_FIG);
+  const out = await transform('<SvgDiagram src="./figs/a.ts" />', path.join(dir, 'slides.md'));
+  assert.match(embedded(out)[0], /data-icon="lock2"/);
+  fs.rmSync(dir, {recursive: true});
+});
+
+test('editing the icons file or the settings file is watched, and the next render shows the new icon', async () => {
+  const dir = tmp();
+  const icons = path.join(dir, 'svg-diagram.icons.json'), config = path.join(dir, '.svg-diagram.json');
+  fs.writeFileSync(icons, ICONS('M1 1h8v8H1z'));
+  fs.writeFileSync(config, '{}');
+  fs.writeFileSync(path.join(dir, 'a.ts'), ICON_FIG);
+  const md = path.join(dir, 'slides.md');
+  const first = embedded(await transform('<SvgDiagram src="./a.ts" />', md))[0];
+  assert.ok(allDeps().has(icons) && allDeps().has(config));
+  fs.writeFileSync(icons, ICONS('M2 2h20v20H2z'));
+  const second = embedded(await transform('<SvgDiagram src="./a.ts" />', md))[0];
+  assert.notEqual(second, first);
+  assert.match(second, /M2 2h20v20H2z/);
+  fs.rmSync(dir, {recursive: true});
+});
+
+test('a project with no icons file renders icon-free figures as before', async () => {
+  const dir = tmp();
+  fs.writeFileSync(path.join(dir, 'a.ts'), GOOD('plain'));
+  const out = await transform('<SvgDiagram src="./a.ts" />', path.join(dir, 'slides.md'));
+  assert.match(embedded(out)[0], /plain/);
+  fs.rmSync(dir, {recursive: true});
+});
