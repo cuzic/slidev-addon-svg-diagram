@@ -1,8 +1,4 @@
 packages:
   - .
-# svg-diagram@0.5.0 was published the day this was written; pnpm skips versions younger than its minimumReleaseAge until then.
-# Delete this entry once that age has passed.
-minimumReleaseAgeExclude:
-  - svg-diagram@0.5.0
 overrides:
   markdown-it: ^14.1.0
